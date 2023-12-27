@@ -112,15 +112,27 @@ void setup() {
   }
 }
 
+void removeRows(){
+  for(int i=0;i<8;i++){
+    if(gameState[i]==255){
+      for(int j=i;j>0;j--){
+        gameState[j] = gameState[j-1];
+      }
+      gameState[0] = 0;
+    }
+  }
+}
+
 void mergePiece(){
   for(int i=0;i<8;i++){
     gameState[i] |= fallingPiece[i];
   }
+  removeRows();
 }
 
 void newPiece(){
   fallingPiece[0] = 0b00110000;
-  fallingPiece[1] = 0b00011000;
+  fallingPiece[1] = 0b00110000;
   fallingPiece[2] = 0b00000000;
   fallingPiece[3] = 0b00000000;
   fallingPiece[4] = 0b00000000;
