@@ -36,9 +36,9 @@ byte gameState[8] = {
 };
 
 byte fallingPiece[8] = {
-  0b00100000,
-  0b00110000,
-  0b00100000,
+  0b00000000,
+  0b00000000,
+  0b00000000,
   0b00000000,
   0b00000000,
   0b00000000,
@@ -110,6 +110,8 @@ void setup() {
   for (int row = 1; row <= 8; ++row) {
     sendCommand(row, 0);
   }
+
+  newPiece();
 }
 
 void removeRows(){
@@ -131,14 +133,49 @@ void mergePiece(){
 }
 
 void newPiece(){
-  fallingPiece[0] = 0b00110000;
-  fallingPiece[1] = 0b00110000;
-  fallingPiece[2] = 0b00000000;
-  fallingPiece[3] = 0b00000000;
-  fallingPiece[4] = 0b00000000;
-  fallingPiece[5] = 0b00000000;
-  fallingPiece[6] = 0b00000000;
-  fallingPiece[7] = 0b00000000;
+  switch(random(0,4)){
+    case 0:
+      fallingPiece[0] = 0b00010000;
+      fallingPiece[1] = 0b00111000;
+      fallingPiece[2] = 0b00000000;
+      fallingPiece[3] = 0b00000000;
+      fallingPiece[4] = 0b00000000;
+      fallingPiece[5] = 0b00000000;
+      fallingPiece[6] = 0b00000000;
+      fallingPiece[7] = 0b00000000;
+      break;
+    case 1:
+      fallingPiece[0] = 0b00011000;
+      fallingPiece[1] = 0b00110000;
+      fallingPiece[2] = 0b00000000;
+      fallingPiece[3] = 0b00000000;
+      fallingPiece[4] = 0b00000000;
+      fallingPiece[5] = 0b00000000;
+      fallingPiece[6] = 0b00000000;
+      fallingPiece[7] = 0b00000000;
+      break;
+    case 2:
+      fallingPiece[0] = 0b01100000;
+      fallingPiece[1] = 0b00110000;
+      fallingPiece[2] = 0b00000000;
+      fallingPiece[3] = 0b00000000;
+      fallingPiece[4] = 0b00000000;
+      fallingPiece[5] = 0b00000000;
+      fallingPiece[6] = 0b00000000;
+      fallingPiece[7] = 0b00000000;
+      break;
+    case 3:
+      fallingPiece[0] = 0b00110000;
+      fallingPiece[1] = 0b00110000;
+      fallingPiece[2] = 0b00000000;
+      fallingPiece[3] = 0b00000000;
+      fallingPiece[4] = 0b00000000;
+      fallingPiece[5] = 0b00000000;
+      fallingPiece[6] = 0b00000000;
+      fallingPiece[7] = 0b00000000;
+      break;
+  }
+  
 }
 
 void fallOneRow(){
@@ -207,6 +244,6 @@ void updateGame(){
 }
 
 void loop() {
-  getInput();  
+  getInput();
   updateGame();
 }
