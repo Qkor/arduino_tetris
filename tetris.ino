@@ -26,10 +26,10 @@ int millisPerUpdate = 1500;
 
 byte gameState[8] = {
   0b00000000,
-  0b10000000,
   0b00000000,
   0b00000000,
-  0b00000001,
+  0b00000000,
+  0b00000000,
   0b00000000,
   0b00000000,
   0b00000000,
@@ -58,7 +58,7 @@ void getInput(){
   }
   if(digitalRead(BTN2) == LOW){
     if(btn2lastState){
-      f2();
+      rotatePiece();
     }
     btn2lastState = 0;
   } else {
@@ -66,7 +66,7 @@ void getInput(){
   }
   if(digitalRead(BTN3) == LOW){
     if(btn3lastState){
-      f3();
+      fallOneRow();
     }
     btn3lastState = 0;
   } else {
@@ -112,8 +112,33 @@ void setup() {
   }
 }
 
+void mergePiece(){
+  for(int i=0;i<8;i++){
+    gameState[i] |= fallingPiece[i];
+  }
+}
+
+void newPiece(){
+  fallingPiece[0] = 0b00110000;
+  fallingPiece[1] = 0b00011000;
+  fallingPiece[2] = 0b00000000;
+  fallingPiece[3] = 0b00000000;
+  fallingPiece[4] = 0b00000000;
+  fallingPiece[5] = 0b00000000;
+  fallingPiece[6] = 0b00000000;
+  fallingPiece[7] = 0b00000000;
+}
+
 void fallOneRow(){
-  for(int i=8;i>0;i--){
+  for(int i=0;i<7;i++){
+    // check collision
+    if(fallingPiece[7] || (fallingPiece[i-1] & gameState[i])){
+      mergePiece();
+      newPiece();
+      return;
+    }
+  }
+  for(int i=7;i>0;i--){
     fallingPiece[i] = fallingPiece[i-1];
   }
   fallingPiece[0]=0;
@@ -151,16 +176,12 @@ void moveLeft(){
   }
 }
 
-void f2(){
+void rotatePiece(){
   
 }
-void f3(){
-  fallOneRow();
-}
-
 
 void nextGameState(){
-  // fallOneRow();
+  fallOneRow();
 }
 
 void updateGame(){
