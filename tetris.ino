@@ -21,8 +21,6 @@ int millisPerUpdate = 1500;
 byte gameState[8];
 
 // pieces
-
-
 byte pieceType = 0;
 byte currentRotation = 0;
 byte posX=0;
@@ -237,7 +235,7 @@ void getInput(){
   }
 }
 
-void sendCommand(byte address, byte data) {
+void sendCommandToLedMatrix(byte address, byte data) {
   digitalWrite(LOAD_PIN, LOW);
   shiftOut(DIN_PIN, CLK_PIN, MSBFIRST, address);
   shiftOut(DIN_PIN, CLK_PIN, MSBFIRST, data);
@@ -254,15 +252,15 @@ void setup() {
   pinMode(CLK_PIN, OUTPUT);
   pinMode(LOAD_PIN, OUTPUT);
 
-  sendCommand(0x09, 0x00);  // Decode Mode: No decoding
-  sendCommand(0x0A, 0x00);  // Intensity: Set brightness (0x00 to 0x0F)
-  sendCommand(0x0B, 0x07);  // Scan Limit: Display digits 0 to 7
-  sendCommand(0x0C, 0x01);  // Shutdown: Normal operation
-  sendCommand(0x0F, 0x00);  // Display Test: Disable test mode
+  sendCommandToLedMatrix(0x09, 0x00);  // Decode Mode: No decoding
+  sendCommandToLedMatrix(0x0A, 0x00);  // Intensity: Set brightness (0x00 to 0x0F)
+  sendCommandToLedMatrix(0x0B, 0x07);  // Scan Limit: Display digits 0 to 7
+  sendCommandToLedMatrix(0x0C, 0x01);  // Shutdown: Normal operation
+  sendCommandToLedMatrix(0x0F, 0x00);  // Display Test: Disable test mode
 
   Serial.begin(9600);
   for (int row = 1; row <= 8; ++row) {
-    sendCommand(row, 0);
+    sendCommandToLedMatrix(row, 0);
   }
 
   startGame();
@@ -368,7 +366,7 @@ void updateGame(){
     fallOneRow();
   }
   for (int row = 1; row <= 8; ++row) {
-      sendCommand(row, gameState[row-1] | fallingPiece[row+1]);
+      sendCommandToLedMatrix(row, gameState[row-1] | fallingPiece[row+1]);
   }
 }
 
