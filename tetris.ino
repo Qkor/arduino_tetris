@@ -252,13 +252,13 @@ void setup() {
   pinMode(CLK_PIN, OUTPUT);
   pinMode(LOAD_PIN, OUTPUT);
 
-  sendCommandToLedMatrix(0x09, 0x00);  // Decode Mode: No decoding
-  sendCommandToLedMatrix(0x0A, 0x00);  // Intensity: Set brightness (0x00 to 0x0F)
-  sendCommandToLedMatrix(0x0B, 0x07);  // Scan Limit: Display digits 0 to 7
-  sendCommandToLedMatrix(0x0C, 0x01);  // Shutdown: Normal operation
-  sendCommandToLedMatrix(0x0F, 0x00);  // Display Test: Disable test mode
+  // LED board setup
+  sendCommandToLedMatrix(0x09, 0x00); 
+  sendCommandToLedMatrix(0x0A, 0x00);  
+  sendCommandToLedMatrix(0x0B, 0x07);  
+  sendCommandToLedMatrix(0x0C, 0x01);  
+  sendCommandToLedMatrix(0x0F, 0x00);  
 
-  Serial.begin(9600);
   for (int row = 1; row <= 8; ++row) {
     sendCommandToLedMatrix(row, 0);
   }
