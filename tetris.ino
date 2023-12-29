@@ -29,7 +29,109 @@ byte gameState[8] = {
   0b00000000,
 };
 
+// pieces
+
+
+byte pieceType = 0;
+byte currentRotation = 0;
+byte posX=0;
+byte posY=0;
 byte fallingPiece[10];
+
+byte piece0[2][3] = {
+  {
+    0b11000000,
+    0b01100000,
+    0b00000000,
+  },
+  {
+    0b01000000,
+    0b11000000,
+    0b10000000,
+  },
+};
+
+byte piece1[2][3] = {
+  {
+    0b01100000,
+    0b11000000,
+    0b00000000,
+  },
+  {
+    0b10000000,
+    0b11000000,
+    0b01000000,
+  },
+};
+
+byte piece2[4][3] = {
+  {
+    0b01000000,
+    0b11100000,
+    0b00000000,
+  },
+  {
+    0b01000000,
+    0b01100000,
+    0b01000000,
+  },
+  {
+    0b00000000,
+    0b11100000,
+    0b01000000,
+  },
+  {
+    0b01000000,
+    0b11000000,
+    0b01000000,
+  }
+};
+
+void rotatePiece(){
+  byte nextRotation;
+  if(pieceType == 3)
+    return;
+  if(pieceType<2){
+    nextRotation = 1-currentRotation;
+  }
+  else{
+    if(currentRotation==3) nextRotation = 0;
+    else nextRotation = currentRotation+1;
+  }
+  byte fallingPieceNextState[10] = {0,0,0,0,0,0,0,0,0,0};
+  for(int i=0;i<3;i++){
+    if(pieceType == 0){
+      fallingPieceNextState[posY+i] = piece0[nextRotation][i] >> posX;
+    // check if rotated piece gets out of the board
+    if((fallingPieceNextState[posY+i] << posX) != piece0[nextRotation][i])
+      return;
+    }
+    if(pieceType == 1){
+      fallingPieceNextState[posY+i] = piece1[nextRotation][i] >> posX;
+    // check if rotated piece gets out of the board
+    if((fallingPieceNextState[posY+i] << posX) != piece1[nextRotation][i])
+      return;
+    }
+    if(pieceType == 2){
+      fallingPieceNextState[posY+i] = piece2[nextRotation][i] >> posX;
+    // check if rotated piece gets out of the board
+    if((fallingPieceNextState[posY+i] << posX) != piece2[nextRotation][i])
+      return;
+    }
+  }
+  for(int i=2;i<10;i++){
+    // check collisions
+    if(fallingPieceNextState[i] & gameState[i-2])
+      return;
+  }
+  // update falling piece
+  currentRotation = nextRotation;
+  for(int i=0;i<10;i++){
+    Serial.println(fallingPiece[i]);
+    fallingPiece[i] = fallingPieceNextState[i];
+  }
+}
+
 
 
 void getInput(){
@@ -117,10 +219,14 @@ void mergePiece(){
 }
 
 void newPiece(){
-  switch(random(0,4)){
+  pieceType = random()%4;
+  currentRotation = 0;
+  posX=0;
+  posY=0;
+  switch(pieceType){
     case 0:
-      fallingPiece[0] = 0b00010000;
-      fallingPiece[1] = 0b00111000;
+      fallingPiece[0] = 0b11000000;
+      fallingPiece[1] = 0b01100000;
       fallingPiece[2] = 0b00000000;
       fallingPiece[3] = 0b00000000;
       fallingPiece[4] = 0b00000000;
@@ -131,8 +237,8 @@ void newPiece(){
       fallingPiece[9] = 0b00000000;
       break;
     case 1:
-      fallingPiece[0] = 0b00011000;
-      fallingPiece[1] = 0b00110000;
+      fallingPiece[0] = 0b01100000;
+      fallingPiece[1] = 0b11000000;
       fallingPiece[2] = 0b00000000;
       fallingPiece[3] = 0b00000000;
       fallingPiece[4] = 0b00000000;
@@ -143,8 +249,8 @@ void newPiece(){
       fallingPiece[9] = 0b00000000;
       break;
     case 2:
-      fallingPiece[0] = 0b01100000;
-      fallingPiece[1] = 0b00110000;
+      fallingPiece[0] = 0b01000000;
+      fallingPiece[1] = 0b11100000;
       fallingPiece[2] = 0b00000000;
       fallingPiece[3] = 0b00000000;
       fallingPiece[4] = 0b00000000;
@@ -155,8 +261,8 @@ void newPiece(){
       fallingPiece[9] = 0b00000000;
       break;
     case 3:
-      fallingPiece[0] = 0b00110000;
-      fallingPiece[1] = 0b00110000;
+      fallingPiece[0] = 0b11000000;
+      fallingPiece[1] = 0b11000000;
       fallingPiece[2] = 0b00000000;
       fallingPiece[3] = 0b00000000;
       fallingPiece[4] = 0b00000000;
@@ -167,14 +273,14 @@ void newPiece(){
       fallingPiece[9] = 0b00000000;
       break;
   }
-  
 }
 
 void fallOneRow(){
+  // check if piece is at the bottom row
   if(fallingPiece[9]){
     mergePiece();
-      newPiece();
-      return;
+    newPiece();
+    return;
   }
   for(int i=2;i<9;i++){
     // check collision
@@ -184,6 +290,8 @@ void fallOneRow(){
       return;
     }
   }
+  //move the piece
+  posY++;
   for(int i=9;i>0;i--){
     fallingPiece[i] = fallingPiece[i-1];
   }
@@ -202,6 +310,7 @@ void moveRight(){
         return;
   }
   //move the piece
+  posX++;
   for(int i=0;i<=9;i++){
     fallingPiece[i] = fallingPiece[i] >> 1;
   }
@@ -219,23 +328,16 @@ void moveLeft(){
         return;
   }
   //move the piece
+  posX--;
   for(int i=0;i<=9;i++){
     fallingPiece[i] = fallingPiece[i] << 1;
   }
 }
 
-void rotatePiece(){
-
-}
-
-void nextGameState(){
-  fallOneRow();
-}
-
 void updateGame(){
   if(millis() - time > millisPerUpdate){
     time = millis();
-    nextGameState();
+    fallOneRow();
   }
   for (int row = 1; row <= 8; ++row) {
       sendCommand(row, gameState[row-1] | fallingPiece[row+1]);
