@@ -18,16 +18,7 @@ int btn4lastState = 1;
 unsigned long time = 0;
 int millisPerUpdate = 1500;
 
-byte gameState[8] = {
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-};
+byte gameState[8];
 
 // pieces
 
@@ -38,101 +29,178 @@ byte posX=0;
 byte posY=0;
 byte fallingPiece[10];
 
-byte piece0[2][3] = {
+byte pieces[6][4][3] = {
+  //piece 0
   {
-    0b11000000,
-    0b01100000,
-    0b00000000,
+    {
+      0b11000000,
+      0b01100000,
+      0b00000000,
+    },
+    {
+      0b01000000,
+      0b11000000,
+      0b10000000,
+    },
+    {
+      0b11000000,
+      0b01100000,
+      0b00000000,
+    },
+    {
+      0b01000000,
+      0b11000000,
+      0b10000000,
+    },
   },
+  // piece 1
   {
-    0b01000000,
-    0b11000000,
-    0b10000000,
+    {
+      0b01100000,
+      0b11000000,
+      0b00000000,
+    },
+    {
+      0b10000000,
+      0b11000000,
+      0b01000000,
+    },  
+    {
+      0b01100000,
+      0b11000000,
+      0b00000000,
+    },
+    {
+      0b10000000,
+      0b11000000,
+      0b01000000,
+    },
   },
-};
-
-byte piece1[2][3] = {
+  // piece 2
   {
-    0b01100000,
-    0b11000000,
-    0b00000000,
+    {
+      0b01000000,
+      0b11100000,
+      0b00000000,
+    },
+    {
+      0b01000000,
+      0b01100000,
+      0b01000000,
+    },
+    {
+      0b00000000,
+      0b11100000,
+      0b01000000,
+    },
+    {
+      0b01000000,
+      0b11000000,
+      0b01000000,
+    }
   },
+  // piece 3
   {
-    0b10000000,
-    0b11000000,
-    0b01000000,
+    {
+      0b10000000,
+      0b11100000,
+      0b00000000,
+    },
+    {
+      0b01100000,
+      0b01000000,
+      0b01000000,
+    },
+    {
+      0b00000000,
+      0b11100000,
+      0b00100000,
+    },
+    {
+      0b01000000,
+      0b01000000,
+      0b11000000,
+    },
   },
-};
-
-byte piece2[4][3] = {
+  // piece 4
   {
-    0b01000000,
-    0b11100000,
-    0b00000000,
+    {
+      0b00100000,
+      0b11100000,
+      0b00000000,
+    },
+    {
+      0b01000000,
+      0b01000000,
+      0b01100000,
+    },
+    {
+      0b00000000,
+      0b11100000,
+      0b10000000,
+    },
+    {
+      0b11000000,
+      0b01000000,
+      0b01000000,
+    },
   },
+  // piece 5
   {
-    0b01000000,
-    0b01100000,
-    0b01000000,
+    {
+      0b11000000,
+      0b11000000,
+      0b00000000,
+    },
+    {
+      0b11000000,
+      0b11000000,
+      0b00000000,
+    },
+    {
+      0b11000000,
+      0b11000000,
+      0b00000000,
+    },
+    {
+      0b11000000,
+      0b11000000,
+      0b00000000,
+    },
   },
-  {
-    0b00000000,
-    0b11100000,
-    0b01000000,
-  },
-  {
-    0b01000000,
-    0b11000000,
-    0b01000000,
-  }
 };
 
 void rotatePiece(){
   byte nextRotation;
-  if(pieceType == 3)
+  if(pieceType > 4)
     return;
-  if(pieceType<2){
-    nextRotation = 1-currentRotation;
-  }
-  else{
-    if(currentRotation==3) nextRotation = 0;
-    else nextRotation = currentRotation+1;
-  }
+  if(currentRotation==3) nextRotation = 0;
+  else nextRotation = currentRotation+1;
+
   byte fallingPieceNextState[10] = {0,0,0,0,0,0,0,0,0,0};
   for(int i=0;i<3;i++){
-    if(pieceType == 0){
-      fallingPieceNextState[posY+i] = piece0[nextRotation][i] >> posX;
+    fallingPieceNextState[posY+i] = pieces[pieceType][nextRotation][i] >> posX;
     // check if rotated piece gets out of the board
-    if((fallingPieceNextState[posY+i] << posX) != piece0[nextRotation][i])
+    if((fallingPieceNextState[posY+i] << posX) != pieces[pieceType][nextRotation][i])
       return;
-    }
-    if(pieceType == 1){
-      fallingPieceNextState[posY+i] = piece1[nextRotation][i] >> posX;
-    // check if rotated piece gets out of the board
-    if((fallingPieceNextState[posY+i] << posX) != piece1[nextRotation][i])
-      return;
-    }
-    if(pieceType == 2){
-      fallingPieceNextState[posY+i] = piece2[nextRotation][i] >> posX;
-    // check if rotated piece gets out of the board
-    if((fallingPieceNextState[posY+i] << posX) != piece2[nextRotation][i])
-      return;
-    }
   }
+  // check collisions
   for(int i=2;i<10;i++){
-    // check collisions
     if(fallingPieceNextState[i] & gameState[i-2])
       return;
   }
   // update falling piece
   currentRotation = nextRotation;
   for(int i=0;i<10;i++){
-    Serial.println(fallingPiece[i]);
     fallingPiece[i] = fallingPieceNextState[i];
   }
 }
 
-
+void startGame(){
+  for(int i=0;i<8;i++)
+    gameState[i] = 0;
+  newPiece();
+}
 
 void getInput(){
     if(digitalRead(BTN1) == LOW){
@@ -197,7 +265,7 @@ void setup() {
     sendCommand(row, 0);
   }
 
-  newPiece();
+  startGame();
 }
 
 void removeRows(){
@@ -219,59 +287,15 @@ void mergePiece(){
 }
 
 void newPiece(){
-  pieceType = random()%4;
-  currentRotation = 0;
-  posX=0;
+  pieceType = rand()%6;
+  posX=3;
   posY=0;
-  switch(pieceType){
-    case 0:
-      fallingPiece[0] = 0b11000000;
-      fallingPiece[1] = 0b01100000;
-      fallingPiece[2] = 0b00000000;
-      fallingPiece[3] = 0b00000000;
-      fallingPiece[4] = 0b00000000;
-      fallingPiece[5] = 0b00000000;
-      fallingPiece[6] = 0b00000000;
-      fallingPiece[7] = 0b00000000;
-      fallingPiece[8] = 0b00000000;
-      fallingPiece[9] = 0b00000000;
-      break;
-    case 1:
-      fallingPiece[0] = 0b01100000;
-      fallingPiece[1] = 0b11000000;
-      fallingPiece[2] = 0b00000000;
-      fallingPiece[3] = 0b00000000;
-      fallingPiece[4] = 0b00000000;
-      fallingPiece[5] = 0b00000000;
-      fallingPiece[6] = 0b00000000;
-      fallingPiece[7] = 0b00000000;
-      fallingPiece[8] = 0b00000000;
-      fallingPiece[9] = 0b00000000;
-      break;
-    case 2:
-      fallingPiece[0] = 0b01000000;
-      fallingPiece[1] = 0b11100000;
-      fallingPiece[2] = 0b00000000;
-      fallingPiece[3] = 0b00000000;
-      fallingPiece[4] = 0b00000000;
-      fallingPiece[5] = 0b00000000;
-      fallingPiece[6] = 0b00000000;
-      fallingPiece[7] = 0b00000000;
-      fallingPiece[8] = 0b00000000;
-      fallingPiece[9] = 0b00000000;
-      break;
-    case 3:
-      fallingPiece[0] = 0b11000000;
-      fallingPiece[1] = 0b11000000;
-      fallingPiece[2] = 0b00000000;
-      fallingPiece[3] = 0b00000000;
-      fallingPiece[4] = 0b00000000;
-      fallingPiece[5] = 0b00000000;
-      fallingPiece[6] = 0b00000000;
-      fallingPiece[7] = 0b00000000;
-      fallingPiece[8] = 0b00000000;
-      fallingPiece[9] = 0b00000000;
-      break;
+  currentRotation = 0;
+  for(int i=0;i<3;i++){
+    fallingPiece[i] = pieces[pieceType][currentRotation][i] >> posX;
+  }
+  for(int i=3;i<=10;i++){
+    fallingPiece[i] = 0;
   }
 }
 
@@ -335,6 +359,10 @@ void moveLeft(){
 }
 
 void updateGame(){
+  // restart game on loss 
+  if(gameState[0]){
+    startGame();
+  }
   if(millis() - time > millisPerUpdate){
     time = millis();
     fallOneRow();
