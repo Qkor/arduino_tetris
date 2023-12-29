@@ -1,13 +1,9 @@
-#include<SoftwareSerial.h>
-
 // led matrix pins
-
 const int DIN_PIN = 10;   // Data In
 const int CLK_PIN = 12;   // Clock
 const int LOAD_PIN = 11;  // Load (CS)
 
 // button pins
-
 const int BTN1 = 2;
 const int BTN2 = 3;
 const int BTN3 = 4;
@@ -19,10 +15,8 @@ int btn3lastState = 1;
 int btn4lastState = 1;
 
 // game time
-
 unsigned long time = 0;
 int millisPerUpdate = 1500;
-
 
 byte gameState[8] = {
   0b00000000,
@@ -35,16 +29,7 @@ byte gameState[8] = {
   0b00000000,
 };
 
-byte fallingPiece[8] = {
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-  0b00000000,
-};
+byte fallingPiece[10];
 
 
 void getInput(){
@@ -89,7 +74,6 @@ void sendCommand(byte address, byte data) {
   digitalWrite(LOAD_PIN, HIGH);
 }
 
-
 void setup() {
   pinMode(BTN1, INPUT_PULLUP);
   pinMode(BTN2, INPUT_PULLUP);
@@ -127,7 +111,7 @@ void removeRows(){
 
 void mergePiece(){
   for(int i=0;i<8;i++){
-    gameState[i] |= fallingPiece[i];
+    gameState[i] |= fallingPiece[i+2];
   }
   removeRows();
 }
@@ -143,6 +127,8 @@ void newPiece(){
       fallingPiece[5] = 0b00000000;
       fallingPiece[6] = 0b00000000;
       fallingPiece[7] = 0b00000000;
+      fallingPiece[8] = 0b00000000;
+      fallingPiece[9] = 0b00000000;
       break;
     case 1:
       fallingPiece[0] = 0b00011000;
@@ -153,6 +139,8 @@ void newPiece(){
       fallingPiece[5] = 0b00000000;
       fallingPiece[6] = 0b00000000;
       fallingPiece[7] = 0b00000000;
+      fallingPiece[8] = 0b00000000;
+      fallingPiece[9] = 0b00000000;
       break;
     case 2:
       fallingPiece[0] = 0b01100000;
@@ -163,6 +151,8 @@ void newPiece(){
       fallingPiece[5] = 0b00000000;
       fallingPiece[6] = 0b00000000;
       fallingPiece[7] = 0b00000000;
+      fallingPiece[8] = 0b00000000;
+      fallingPiece[9] = 0b00000000;
       break;
     case 3:
       fallingPiece[0] = 0b00110000;
@@ -173,21 +163,28 @@ void newPiece(){
       fallingPiece[5] = 0b00000000;
       fallingPiece[6] = 0b00000000;
       fallingPiece[7] = 0b00000000;
+      fallingPiece[8] = 0b00000000;
+      fallingPiece[9] = 0b00000000;
       break;
   }
   
 }
 
 void fallOneRow(){
-  for(int i=0;i<7;i++){
+  if(fallingPiece[9]){
+    mergePiece();
+      newPiece();
+      return;
+  }
+  for(int i=2;i<9;i++){
     // check collision
-    if(fallingPiece[7] || (fallingPiece[i-1] & gameState[i])){
+    if(fallingPiece[i] & gameState[i-1]){
       mergePiece();
       newPiece();
       return;
     }
   }
-  for(int i=7;i>0;i--){
+  for(int i=9;i>0;i--){
     fallingPiece[i] = fallingPiece[i-1];
   }
   fallingPiece[0]=0;
@@ -195,38 +192,40 @@ void fallOneRow(){
 
 void moveRight(){
   //check if moving the piece is possible
-  for(int i=0;i<8;i++){
+  for(int i=0;i<10;i++){
     //out of board
     if(fallingPiece[i]%2)
       return;
     //collision
-    if(((fallingPiece[i] >> 1) | gameState[i]) != (fallingPiece[i] >> 1) + gameState[i])
-      return;
+    if(i>=2)
+      if(((fallingPiece[i] >> 1) | gameState[i-2]) != (fallingPiece[i] >> 1) + gameState[i-2])
+        return;
   }
   //move the piece
-  for(int i=0;i<8;i++){
+  for(int i=0;i<=9;i++){
     fallingPiece[i] = fallingPiece[i] >> 1;
   }
 }
 
 void moveLeft(){
   //check if moving the piece is possible
-  for(int i=0;i<8;i++){
+  for(int i=0;i<10;i++){
     //out of board
     if(fallingPiece[i]>127)
       return;
     //collision
-    if(((fallingPiece[i] << 1) | gameState[i]) != (fallingPiece[i] << 1) + gameState[i])
-      return;
+    if(i>=2)
+      if(((fallingPiece[i] << 1) | gameState[i-2]) != (fallingPiece[i] << 1) + gameState[i-2])
+        return;
   }
   //move the piece
-  for(int i=0;i<8;i++){
+  for(int i=0;i<=9;i++){
     fallingPiece[i] = fallingPiece[i] << 1;
   }
 }
 
 void rotatePiece(){
-  
+
 }
 
 void nextGameState(){
@@ -239,7 +238,7 @@ void updateGame(){
     nextGameState();
   }
   for (int row = 1; row <= 8; ++row) {
-      sendCommand(row, gameState[row-1] | fallingPiece[row-1]);
+      sendCommand(row, gameState[row-1] | fallingPiece[row+1]);
   }
 }
 
