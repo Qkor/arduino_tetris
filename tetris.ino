@@ -183,6 +183,8 @@ void rotatePiece(){
       return;
   }
   // check collisions
+  if(pieces[pieceType][nextRotation][2] && posY >= 8)
+    return; 
   for(int i=2;i<10;i++){
     if(fallingPieceNextState[i] & gameState[i-2])
       return;
@@ -198,6 +200,7 @@ void startGame(){
   for(int i=0;i<8;i++)
     gameState[i] = 0;
   newPiece();
+  millisPerUpdate = 1500;
 }
 
 void getInput(){
@@ -273,6 +276,8 @@ void removeRows(){
         gameState[j] = gameState[j-1];
       }
       gameState[0] = 0;
+      if(millisPerUpdate>200)
+        millisPerUpdate -= 100;
     }
   }
 }
